@@ -46,7 +46,7 @@ div
           div.control.has-text-centered
             label.checkbox(style="line-height: 2;")
               input(v-model="ignoreDeadPeers", type="checkbox")
-              | ignore dead peers
+              |  ignore dead peers
   table.table.is-bordered.is-narrow
     +header
     tbody

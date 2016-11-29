@@ -42,7 +42,7 @@ mixin header
       th
         span address
       th
-        span 操作
+        span action
 
 div
   nav.level(style="margin-bottom: 10px;")
@@ -58,9 +58,12 @@ div
       tr(v-for="network in sortedNetworks", @dblclick="viewNetwork(network.nwid)")
         td
           span.is-font-hack
-            a {{ network.nwid }}
+            | {{ network.nwid }}
         td {{ network.name }}
-        td {{ network.status }}
+        td
+          span.is-font-hack.is-break-word(
+            style="display: inline-block; max-width: 140px;")
+            | {{ network.status }}
         td {{ network.type }}
         td
           span(:class="network.broadcastEnabled ? 'is-true' : 'is-false'")
@@ -73,17 +76,28 @@ div
           span(:class="network.dhcp ? 'is-true' : 'is-false'")
         td {{ network.portDeviceName }}
         td
-          span.is-font-hack.is-break-word(style="display: inline-block; max-width: 140px;")
+          span.is-font-hack.is-break-word(
+            style="display: inline-block; max-width: 140px;")
             | {{ network.assignedAddresses.join('\n') }}
         td
-          a view
-    span Shown {{ sortedNetworks.length }} of {{ networks.length }}
+          a.button.is-danger.is-outlined.is-small(@click="leaveNwid = network.nwid")
+            span Leave ✗
+    div Shown {{ sortedNetworks.length }} of {{ networks.length }}
+  leave-network(v-if="leaveNwid", :nwid="leaveNwid", @dismiss="leaveNwid = ''")
+  join-network
 </template>
 
 <script>
 import _ from 'lodash'
 
+import JoinNetwork from './JoinNetwork.vue'
+import LeaveNetwork from './LeaveNetwork.vue'
+
 export default {
+  components: {
+    JoinNetwork,
+    LeaveNetwork,
+  },
   props: {
     networks: {
       type: Array,
@@ -96,6 +110,7 @@ export default {
         key: 'nwid',
         order: 1,
       },
+      leaveNwid: '',
     }
   },
   computed: {
@@ -107,11 +122,13 @@ export default {
       })
     },
     filteredNetworks () {
-      const fields = ['nwid', 'name', 'mac', 'status']
-      const {wrappedNetworks, search} = this
+      const fields = ['nwid', 'name', 'status', 'type', 'mac']
+      const {wrappedNetworks} = this
+      let {search} = this
       if (search) {
+        search = search.toLowerCase()
         return wrappedNetworks.filter((n) => {
-          return _.some(fields.map(key => _.includes(n[key], search)))
+          return _.some(fields.map(key => _.includes(n[key].toLowerCase(), search)))
         })
       } else {
         return wrappedNetworks
@@ -134,9 +151,6 @@ export default {
         this.sort.key = key
         this.sort.order = 1
       }
-    },
-    viewNetwork (nwid) {
-      //
     },
   },
 }
