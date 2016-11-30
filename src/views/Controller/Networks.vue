@@ -27,9 +27,8 @@ mixin header
     th(@click="toggleSortKey('allowPassiveBridging')")
       span bridge
       +icon('allowPassiveBridging')
-    th(@click="toggleSortKey('revision')")
-      span revision
-      +icon('revision')
+    th
+      span member
     th
 
 div
@@ -55,7 +54,7 @@ div
           span(:class="network.enableBroadcast ? 'is-true' : 'is-false'")
         td
           span(:class="network.allowPassiveBridging ? 'is-true' : 'is-false'")
-        td {{ network.revision }}
+        td {{ members[network.nwid] }}
         td
           a view
     span Shown {{ sortedNetworks.length }} of {{ networks.length }}
@@ -63,6 +62,8 @@ div
 
 <script>
 import _ from 'lodash'
+
+import api from 'src/lib/api.js'
 
 import formatTime from 'src/mixins/formatTime.js'
 
@@ -80,6 +81,7 @@ export default {
         key: 'nwid',
         order: 1,
       },
+      members: {},
     }
   },
   computed: {
@@ -97,8 +99,8 @@ export default {
       const fields = ['nwid', 'name', 'creationTime']
       const {wrappedNetworks, search} = this
       if (search) {
-        return wrappedNetworks.filter((n) => {
-          return _.some(fields.map(key => _.includes(n[key], search)))
+        return wrappedNetworks.filter((nw) => {
+          return _.some(fields.map(key => _.includes(nw[key], search)))
         })
       } else {
         return wrappedNetworks
@@ -114,6 +116,22 @@ export default {
     },
   },
   methods: {
+    loadMembers () {
+      const {networks} = this
+      for (const {nwid} of networks) {
+        api({
+          url: `/controller/network/${nwid}/active`,
+          type: 'GET',
+          success: (member) => {
+            const {members} = this
+            this.members = {..._.cloneDeep(members), ...{[nwid]: _.size(member)}}
+          },
+        })
+      }
+    },
+    loadData () {
+      this.loadMembers()
+    },
     toggleSortKey (key) {
       if (this.sort.key === key) {
         this.sort.order *= -1
@@ -125,6 +143,13 @@ export default {
     viewNetwork (nwid) {
       //
     },
+  },
+  created () {
+    this.loadData()
+    this._timer = setInterval(() => { this.loadData() }, 1000)
+  },
+  destroyed () {
+    clearInterval(this._timer)
   },
 }
 </script>
