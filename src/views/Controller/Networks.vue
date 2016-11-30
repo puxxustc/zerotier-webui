@@ -45,7 +45,8 @@ div
       tr(v-for="network in sortedNetworks", @dblclick="viewNetwork(network.nwid)")
         td
           span.is-font-hack
-            a {{ network.nwid }}
+            router-link(:to="{name: 'controller/network', params: {nwid: network.nwid}}")
+              | {{ network.nwid }}
         td {{ network.name }}
         td {{ network.creationTime }}
         td
@@ -56,7 +57,8 @@ div
           span(:class="network.allowPassiveBridging ? 'is-true' : 'is-false'")
         td {{ members[network.nwid] }}
         td
-          a view
+          router-link(:to="{name: 'controller/network', params: {nwid: network.nwid}}")
+            | view
     span Shown {{ sortedNetworks.length }} of {{ networks.length }}
 </template>
 
@@ -69,11 +71,6 @@ import formatTime from 'src/mixins/formatTime.js'
 
 export default {
   mixins: [formatTime],
-  props: {
-    networks: {
-      type: Array,
-    },
-  },
   data () {
     return {
       search: '',
@@ -81,29 +78,34 @@ export default {
         key: 'nwid',
         order: 1,
       },
+      nwids: [],
+      networkDetail: {},
       members: {},
     }
   },
   computed: {
-    wrappedNetworks () {
-      const {networks, formatTime} = this
-      return networks.filter(n => n).map((n) => {
-        const network = _.cloneDeep(n)
-        const {clock, creationTime} = network
-        network.clock = formatTime(clock)
-        network.creationTime = formatTime(creationTime)
-        return network
-      })
+    networks () {
+      const {nwids, networkDetail, formatTime} = this
+      return nwids
+        .map(nwid => networkDetail[nwid])
+        .filter(nw => nw)
+        .map((nw) => {
+          const network = _.cloneDeep(nw)
+          const {clock, creationTime} = network
+          network.clock = formatTime(clock)
+          network.creationTime = formatTime(creationTime)
+          return network
+        })
     },
     filteredNetworks () {
       const fields = ['nwid', 'name', 'creationTime']
-      const {wrappedNetworks, search} = this
+      const {networks, search} = this
       if (search) {
-        return wrappedNetworks.filter((nw) => {
+        return networks.filter((nw) => {
           return _.some(fields.map(key => _.includes(nw[key], search)))
         })
       } else {
-        return wrappedNetworks
+        return networks
       }
     },
     sortedNetworks () {
@@ -116,6 +118,24 @@ export default {
     },
   },
   methods: {
+    loadNetworks () {
+      api({
+        url: '/controller/network',
+        type: 'GET',
+        success: (nwids) => {
+          this.nwids = nwids
+          for (const nwid of nwids) {
+            api({
+              url: `/controller/network/${nwid}`,
+              type: 'GET',
+              success: (detail) => {
+                this.networkDetail = {...this.networkDetail, ...{[nwid]: detail}}
+              },
+            })
+          }
+        },
+      })
+    },
     loadMembers () {
       const {networks} = this
       for (const {nwid} of networks) {
@@ -130,6 +150,7 @@ export default {
       }
     },
     loadData () {
+      this.loadNetworks()
       this.loadMembers()
     },
     toggleSortKey (key) {
@@ -141,7 +162,7 @@ export default {
       }
     },
     viewNetwork (nwid) {
-      //
+      this.router.push({name: 'controller/network', params: {nwid}})
     },
   },
   created () {

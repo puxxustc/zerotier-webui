@@ -25,7 +25,7 @@ export const setServiceAPI = ({ commit }, service = {}) => {
       headers: {
         'X-ZT1-Auth': token,
       },
-      success: (data) => {
+      success: () => {
         commit(types.SET_SERVICE_API, service)
       },
       error: () => {

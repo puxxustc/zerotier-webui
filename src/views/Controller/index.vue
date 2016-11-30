@@ -33,10 +33,12 @@ div
             | {{ formatTime(controller.clock) }}
       hr
 
-      div
+      div(v-if="$route.name === 'controller'")
         h4.title.is-4 Managed networks
         div.margin-left-14-1
-          networks(:networks="networks")
+          networks
+      div
+        router-view
       hr
 </template>
 
@@ -55,15 +57,7 @@ export default {
   data () {
     return {
       controller: {},
-      nwids: [],
-      networkDetail: {},
     }
-  },
-  computed: {
-    networks () {
-      const {nwids, networkDetail} = this
-      return nwids.map(nwid => networkDetail[nwid])
-    },
   },
   methods: {
     loadController () {
@@ -75,27 +69,8 @@ export default {
         },
       })
     },
-    loadNetworks () {
-      api({
-        url: '/controller/network',
-        type: 'GET',
-        success: (nwids) => {
-          this.nwids = nwids
-          for (const nwid of nwids) {
-            api({
-              url: `/controller/network/${nwid}`,
-              type: 'GET',
-              success: (detail) => {
-                this.networkDetail = {...this.networkDetail, ...{[nwid]: detail}}
-              },
-            })
-          }
-        },
-      })
-    },
     loadData () {
       this.loadController()
-      this.loadNetworks()
     },
   },
   created () {
