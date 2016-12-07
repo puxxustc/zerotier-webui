@@ -5,12 +5,12 @@ const route = {
     title: 'Controller',
     isNav: true,
   },
-  component: resolve => require(['./index.vue'], resolve),
+  component: () => System.import('./index.vue'),
   children: [
     {
       name: 'controller/network',
       path: 'network/:nwid',
-      component: resolve => require(['./Network.vue'], resolve),
+      component: () => System.import('./Network.vue'),
     },
   ],
 }

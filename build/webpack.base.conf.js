@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const webpack = require('webpack')
 const config = require('../config')
 const utils = require('./utils')
 const projectRoot = path.resolve(__dirname, '../')
@@ -22,8 +23,8 @@ module.exports = {
     filename: '[name].js',
   },
   resolve: {
-    extensions: ['', '.js', '.vue'],
-    fallback: [path.join(__dirname, '../node_modules')],
+    extensions: ['.js', '.vue'],
+    modules: ['node_modules'],
     alias: {
       'src': path.resolve(__dirname, '../src'),
       'assets': path.resolve(__dirname, '../src/assets'),
@@ -31,46 +32,43 @@ module.exports = {
       'store': path.resolve(__dirname, '../src/store'),
     },
   },
-  resolveLoader: {
-    fallback: [path.join(__dirname, '../node_modules')],
-  },
   module: {
-    preLoaders: [
+    rules: [
       {
         test: /\.vue$/,
-        loader: 'eslint',
+        loader: 'eslint-loader',
         include: projectRoot,
         exclude: /node_modules/,
+        enforce: 'pre',
       },
       {
         test: /\.js$/,
-        loader: 'eslint',
+        loader: 'eslint-loader',
         include: projectRoot,
         exclude: /node_modules/,
+        enforce: 'pre',
       },
-    ],
-    loaders: [
       {
         test: /\.vue$/,
-        loader: 'vue',
+        loader: 'vue-loader',
       },
       {
         test: /\.js$/,
-        loader: 'babel',
+        loader: 'babel-loader',
         include: projectRoot,
         exclude: /node_modules/,
       },
       {
         test: /\.json$/,
-        loader: 'json',
+        loader: 'json-loader',
       },
       {
         test: /\.html$/,
-        loader: 'vue-html',
+        loader: 'vue-html-loader',
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
-        loader: 'url',
+        loader: 'url-loader',
         query: {
           limit: 10000,
           name: utils.assetsPath('img/[name].[hash:7].[ext]'),
@@ -78,7 +76,7 @@ module.exports = {
       },
       {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
-        loader: 'url',
+        loader: 'url-loader',
         query: {
           limit: 10000,
           name: utils.assetsPath('fonts/[name].[hash:7].[ext]'),
@@ -86,24 +84,28 @@ module.exports = {
       },
       {
         test: require.resolve('jquery'),
-        loader: 'expose?jQuery!expose?$',
+        loader: 'expose-loader?jQuery!expose-loader?$',
       },
     ],
   },
-  eslint: {
-    formatter: require('eslint-friendly-formatter'),
-  },
-  vue: {
-    loaders: utils.cssLoaders({ sourceMap: useCssSourceMap }),
-    postcss: [
-      require('autoprefixer')({
-        browsers: ['last 2 versions'],
-      }),
-    ],
-    templateBuble: {
-      transforms: {
-        stripWith: false,
+  plugins: [
+    new webpack.LoaderOptionsPlugin({
+      vue: {
+        loaders: utils.cssLoaders({ sourceMap: useCssSourceMap }),
+        postcss: [
+          require('autoprefixer')({
+            browsers: ['last 2 versions'],
+          }),
+        ],
+        templateBuble: {
+          transforms: {
+            stripWith: false,
+          },
+        },
       },
-    },
-  },
+      eslint: {
+        formatter: require('eslint-friendly-formatter'),
+      },
+    }),
+  ],
 }

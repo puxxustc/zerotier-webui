@@ -30,7 +30,10 @@ exports.cssLoaders = (options) => {
     // Extract CSS when that option is specified
     // (which is the case during production build)
     if (options.extract) {
-      return ExtractTextPlugin.extract('vue-style-loader', sourceLoader)
+      return ExtractTextPlugin.extract({
+        fallbackLoader: 'vue-style-loader',
+        loader: sourceLoader,
+      })
     } else {
       return ['vue-style-loader', sourceLoader].join('!')
     }
@@ -52,7 +55,7 @@ exports.cssLoaders = (options) => {
 exports.styleLoaders = (options) => {
   const output = []
   const loaders = exports.cssLoaders(options)
-  for (const extension in loaders) {
+  for (const extension of Object.keys(loaders)) {
     const loader = loaders[extension]
     output.push({
       test: new RegExp(`\\.${extension}$`),

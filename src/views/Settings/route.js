@@ -5,7 +5,7 @@ const route = {
     title: 'Settings',
     isNav: true,
   },
-  component: resolve => require(['./index.vue'], resolve),
+  component: () => System.import('./index.vue'),
 }
 
 export default route
