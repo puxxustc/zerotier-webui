@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+'use strict'
+
 require('./check-versions')()
 const config = require('../config')
 if (!process.env.NODE_ENV) {

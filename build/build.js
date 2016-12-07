@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /* global env, rm, mkdir, cp */
-// https://github.com/shelljs/shelljs
+'use strict'
+
 require('./check-versions')()
 require('shelljs/global')
 env.NODE_ENV = 'production'
